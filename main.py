@@ -12,7 +12,6 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[
         logging.FileHandler(log_path),
-        logging.StreamHandler(),
     ]
 )
 
