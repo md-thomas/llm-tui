@@ -4,7 +4,7 @@ connection:
 llm:
   context_window: 1000000
   max_tokens: 2048
-  model: gemini-2.5-flash
+  model: gemini-3.6-flash
   provider: gemini
   temperature: 0.77
   tools_enabled: true
