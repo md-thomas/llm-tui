@@ -14,7 +14,6 @@ tar -czf "$OUT_FILE" \
     --exclude='.git' \
     --exclude='.pytest_cache' \
     --exclude='.venv' \
-    --exclude='.claude' \
     --exclude='dist' \
     --exclude='archive.sh' \
     -C "$SCRIPT_DIR/.." "$(basename "$SCRIPT_DIR")"
