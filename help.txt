@@ -1,0 +1,85 @@
+llm-tui — Help
+
+A terminal chat client for local/OpenAI-compatible LLM backends.
+Type a message and press Enter to chat, or use a / command below.
+Use /commands for a quick one-line list instead of this full reference.
+
+GENERAL
+  /help                      Show this help text
+  /commands                  List all commands with short descriptions
+  /quit, /exit               Exit the application
+  /clear                     Clear the chat history display
+  /compact [focus]           Summarize the conversation and replace history with the summary
+  /new                       Clear the display and reset session tracking (message count, duration)
+  /stop                      Stop the in-progress response
+  /version                   Show the app version
+
+MODEL & GENERATION SETTINGS
+  /model [name]              Show the current model, or switch to <name>
+  /models                    List models available from the backend
+  /temperature [value]       Show or set the sampling temperature
+  /max_tokens [value]        Show or set the max response length
+  /min_p [value]             Show or set min_p (nucleus-style sampling cutoff)
+  /top_k [value]             Show or set top_k (restrict sampling to the top K tokens)
+  /timeout [seconds]         Show or set the request timeout
+  /system_prompt [text]      Show or set the system prompt used for new messages
+  /persona [name]            Show the active persona, or switch to <name>
+  /personas                  List available personas (personas/*.yaml or *.txt)
+
+CONNECTION & CONFIG
+  /backend                   Show backend, API base, and timeout
+  /provider                  Show the current provider name
+  /config                    Show all config values
+  /config <key>              Show one config value
+  /config <key> <value>      Set a config value (persists to your user config directory)
+                             keys: backend, api_base, timeout, model, temperature, max_tokens,
+                             context_window, tools_enabled
+  /reload                    Re-read config.yaml from disk and apply it to the running app
+
+TOOL CALLING
+  When tools_enabled is on, the model can call read_file, list_dir, and grep
+  on its own (no prompt). edit_file and write_file pop an Allow / Always
+  Allow / Deny dialog first. Manage always-allowed tools with /permissions.
+
+SESSION
+  Every turn is auto-saved to a session named "autosave", so if the app
+  crashes or is closed unexpectedly, run /load autosave on next launch to
+  pick back up where you left off (a startup notice will remind you if one
+  is found). /new discards the auto-saved session along with the display.
+  /session                   Show model, temperature, message count, and duration for this run
+  /permissions               Show which tools the model can always use without confirmation
+  /permissions revoke <tool>|all
+                             Revoke an always-allowed tool (or all of them)
+  /history                   Show the messages sent so far this session
+  /save <name>               Save the current conversation as <name>
+  /list                      List saved sessions
+  /show <name>               Preview a saved session without loading it
+  /load <name>               Replace the current conversation with a saved one
+  /delete <name>             Delete a saved session
+
+FILES
+  /ls [flags] [path]                     List a directory's contents (defaults to the current directory)
+                                         -a show hidden files  -l long format (size, mtime)
+                                         -t sort by modified time  -r reverse order
+  /tree [flags] [path]                   Show a recursive directory tree (skips .git/__pycache__/node_modules/etc.)
+                                         -a show hidden files  -d directories only  -L <n> max depth (default 3)
+  /grep [flags] <pattern> [path]         Search file contents (uses ripgrep if installed, falls back to a plain search)
+                                         -i case-insensitive  -v invert match  -w whole word
+                                         -c count matches per file  -l list matching filenames only
+  /cat <file>                            Display a file's contents in the chat
+  /read <file> [file...]                 Load one or more files into context for the LLM (silent, no display)
+  /read                                  List files currently loaded into context
+  /read clear                            Clear all files loaded into context
+  /edit <path> <old text> -> <new text>  Find/replace in a file (old text must be unique in the file)
+  /write <path>                          Write the last AI response to a file
+  /write code <path>                     Write just the code block(s) from the last response
+  /diff <path>                           Preview what /write code <path> would change, without writing anything
+
+KEYBINDINGS
+  Enter            Send message
+  Ctrl+J           Insert a newline without sending
+  Tab              Autocomplete a slash command
+  Ctrl+Up/Down     Navigate input history
+  Ctrl+L           Clear the chat history
+  Ctrl+N           Start a new session
+  Ctrl+D           Quit (with confirmation)

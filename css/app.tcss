@@ -1,0 +1,93 @@
+Screen {
+    layout: vertical;
+}
+
+#history {
+    height: 1fr;
+    width: 1fr;
+    border-bottom: solid $primary;
+}
+
+#input {
+    border: round $primary;
+    padding: 0 1;
+    max-height: 8;
+}
+
+.ai-response {
+    margin-top: 1;
+}
+
+.user-message {
+    margin-top: 1;
+}
+
+.tool-call {
+    margin-top: 1;
+    color: $text-muted;
+}
+
+#tool-confirm {
+    width: 80%;
+    max-width: 100;
+    height: auto;
+    max-height: 80%;
+    border: round $warning;
+    background: $surface;
+    padding: 1 2;
+    margin: 4 4;
+}
+
+#tool-confirm-preview {
+    height: auto;
+    max-height: 14;
+    border: round $primary;
+    margin-top: 1;
+    padding: 0 1;
+}
+
+#tool-confirm-hint {
+    color: $text-muted;
+    margin-top: 1;
+}
+
+#tool-confirm-buttons {
+    dock: bottom;
+    height: auto;
+    margin-top: 1;
+    padding-top: 1;
+    border-top: solid $primary;
+    align: right middle;
+}
+
+#tool-confirm-buttons Button {
+    margin-left: 1;
+}
+
+StatusBar {
+    height: 1;
+    dock: bottom;
+    background: black;
+    color: white;
+}
+
+#spinner {
+    width: 3;
+    text-align: center;
+}
+
+#status {
+    width: 20;
+    text-align: left;
+}
+
+#stats {
+    width: 1fr;
+    text-align: center;
+}
+
+#model {
+    width: 30;
+    text-align: right;
+    padding: 0 2;
+}

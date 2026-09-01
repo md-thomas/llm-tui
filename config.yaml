@@ -1,0 +1,11 @@
+connection:
+  api_base: http://localhost:1234/v1
+  timeout: 300
+llm:
+  backend: foo
+  context_window: 8192
+  max_tokens: 2048
+  model: reloaded-model
+  provider: lmstudio
+  temperature: 0.77
+  tools_enabled: true

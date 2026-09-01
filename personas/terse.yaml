@@ -1,0 +1,3 @@
+system_prompt: "Answer in as few words as possible."
+temperature: 0.2
+output: unicode
