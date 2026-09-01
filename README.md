@@ -22,7 +22,7 @@ A terminal chat UI for local/OpenAI-compatible LLM backends (e.g. [LM Studio](ht
 ## Setup
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -50,6 +50,29 @@ connection:
 
 `context_window` drives the context-usage percentage in the status bar. `tools_enabled` turns [tool calling](#tool-calling) on or off — set it to `false` if your model/backend doesn't support OpenAI-style function calling.
 
+### Using Google Gemini
+
+Gemini exposes an OpenAI-compatible endpoint, so no code changes are needed — just point `api_base` at it and put a [Gemini API key](https://aistudio.google.com/apikey) in `OPENAI_API_KEY` (the app always reads that variable name, regardless of provider):
+
+```
+OPENAI_API_KEY=<your-gemini-api-key>
+```
+
+```yaml
+llm:
+  provider: gemini
+  model: gemini-2.5-flash
+  temperature: 0.7
+  max_tokens: 2048
+  context_window: 1000000
+  tools_enabled: true
+connection:
+  api_base: https://generativelanguage.googleapis.com/v1beta/openai/
+  timeout: 300
+```
+
+Streaming and tool calling both work against this endpoint. The same approach works for any other OpenAI-compatible provider — just swap `api_base`, `model`, and the API key.
+
 ## Running
 
 ```bash
@@ -60,7 +83,7 @@ Resolves its own directory first, so it can be run from anywhere (e.g. symlinked
 
 ```bash
 source .venv/bin/activate
-python main.py
+python3 main.py
 ```
 
 ## Per-user config
@@ -159,7 +182,7 @@ A full, offline test suite covers every command plus the tool-calling flow (102 
 ```bash
 source .venv/bin/activate
 pip install -r requirements-dev.txt
-python -m pytest
+python3 -m pytest
 ```
 
 `requirements-dev.txt`, `pytest.ini`, and `tests/` are test-only — `package.sh` never includes them in the shipped tarball.
