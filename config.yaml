@@ -1,10 +1,11 @@
 connection:
-  api_base: https://generativelanguage.googleapis.com/v1beta/openai/
+  api_base: http://localhost:1234/v1
   timeout: 300
 llm:
-  context_window: 1000000
+  backend: foo
+  context_window: 8192
   max_tokens: 2048
-  model: gemini-3.6-flash
-  provider: gemini
+  model: reloaded-model
+  provider: lmstudio
   temperature: 0.77
   tools_enabled: true
