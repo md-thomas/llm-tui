@@ -137,6 +137,31 @@ async def test_no_resume_notice_when_no_autosave(app_pilot):
     assert "auto-saved session" not in text.lower()
 
 
+async def test_context_with_no_usage_yet(app_pilot):
+    app, pilot = app_pilot
+    await submit(app, pilot, "/context")
+    assert "no context usage yet" in last(app).lower()
+
+
+async def test_context_shows_bar_and_percentage(app_pilot):
+    from types import SimpleNamespace
+    from widgets.status_bar import StatusBar
+
+    app, pilot = app_pilot
+    app.context_window = 1000
+    app.llm.last_usage = SimpleNamespace(total_tokens=500, completion_tokens=100)
+    status_bar = app.query_one(StatusBar)
+    status_bar._context_pct = 50
+
+    await submit(app, pilot, "/context")
+    text = lines(app)[-2]
+    assert "50%" in text
+    assert "500" in text and "1,000" in text
+    assert "█" in text and "░" in text
+    assert lines(app)[-1] == ""
+    assert lines(app)[-3] == ""
+
+
 async def test_new_resets_context_indicator(app_pilot):
     from widgets.status_bar import StatusBar
 

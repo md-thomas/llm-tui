@@ -21,6 +21,8 @@ A terminal chat UI for local/OpenAI-compatible LLM backends (e.g. [LM Studio](ht
 
 ## Setup
 
+Two things need to be configured before the app can connect to a model: your API key (in `.env`) and your backend's connection details (in `config.yaml`). Both are required — the app won't connect if either is missing or still pointing at defaults.
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -72,6 +74,11 @@ connection:
 ```
 
 Streaming and tool calling both work against this endpoint. The same approach works for any other OpenAI-compatible provider — just swap `api_base`, `model`, and the API key.
+
+### Configuration precedence
+
+- **`OPENAI_API_KEY`**: a shell environment variable that's already exported takes precedence over `.env`. `.env` is loaded with [python-dotenv](https://pypi.org/project/python-dotenv/)'s `load_dotenv()`, which only fills in variables that aren't already set — it never overrides an existing one. So if `OPENAI_API_KEY` is exported in your shell (e.g. from `.bashrc`/`.zshrc`), that value wins even if `.env` has a different one. Run `echo $OPENAI_API_KEY` to check, and `unset OPENAI_API_KEY` if you need `.env` to take effect.
+- **Everything else** (`api_base`, `model`, `temperature`, etc., from `config.yaml`): the per-user copy at `~/.config/llm-tui/config.yaml` takes precedence over the bundled `config.yaml` in the install directory, if it exists — see [Per-user config](#per-user-config) below. Once you've changed any setting with `/config`, that per-user copy exists and is the one being used from then on.
 
 ## Running
 
@@ -131,6 +138,7 @@ When `tools_enabled` is on (the default) and the backend supports it, the model 
 | `/clear` | Clear the chat history |
 | `/new` | Clear the display and reset session tracking |
 | `/stop` | Stop the in-progress response |
+| `/context` | Show context-window usage as a bar |
 | `/reload` | Re-read `config.yaml` and apply it to the running app |
 | `/config [key] [value]` | Show or update config values (keys: `backend`, `api_base`, `timeout`, `model`, `temperature`, `max_tokens`, `context_window`, `tools_enabled`) |
 | `/backend` | Show backend/connection info |

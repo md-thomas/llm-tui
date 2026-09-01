@@ -1,5 +1,6 @@
 import random
 import time
+from datetime import datetime
 from textual.containers import Horizontal
 from textual.widgets import Static
 from widgets.spinner import Spinner
@@ -54,6 +55,10 @@ class StatusBar(Horizontal):
     def reset_context(self):
         self._context_pct = None
         self._refresh_stats()
+
+    @property
+    def context_pct(self):
+        return self._context_pct
 
     def set_thinking(self):
         self._token_count = 0
@@ -112,3 +117,9 @@ class StatusBar(Horizontal):
         self._refresh_stats()
         self.query_one("#status", Static).update("Ready")
         self.query_one("#spinner", Spinner).stop()
+
+    def completion_summary(self):
+        elapsed = round(self._elapsed) if self._elapsed is not None else 0
+        tokens_part = f" · {self._token_count} tokens" if self._token_count else ""
+        done_at = datetime.now().strftime("%-I:%M %p")
+        return f"✻ Churned for {elapsed}s{tokens_part} · done {done_at}"

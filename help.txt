@@ -12,6 +12,7 @@ GENERAL
   /compact [focus]           Summarize the conversation and replace history with the summary
   /new                       Clear the display and reset session tracking (message count, duration)
   /stop                      Stop the in-progress response
+  /context                   Show context-window usage as a bar
   /version                   Show the app version
 
 MODEL & GENERATION SETTINGS

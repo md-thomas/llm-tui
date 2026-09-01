@@ -2,6 +2,7 @@ from app import LLMApp
 from paths import user_dir
 import logging
 import os
+import sys
 
 os.makedirs(user_dir(), exist_ok=True)
 log_path = os.path.join(user_dir(), "llm-tui.log")
@@ -20,4 +21,12 @@ log = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":
-    LLMApp().run()
+    session_to_load = sys.argv[1] if len(sys.argv) > 1 else None
+    app = LLMApp(session_to_load=session_to_load)
+    app.run()
+
+    if app.exit_session_name:
+        print(
+            f"Session saved as '{app.exit_session_name}'. "
+            f"Resume with: ./llm-tui.sh {app.exit_session_name}"
+        )

@@ -66,7 +66,7 @@ async def test_read_only_tool_runs_without_confirmation(app_pilot, tmp_path):
     await submit(app, pilot, "read the notes file")
     await wait_for(app, pilot, lambda app: not app.is_generating)
 
-    assert "I read the file." in lines(app)[-1]
+    assert "I read the file." in lines(app)[-4]
     assert any("read_file" in line for line in lines(app))
     assert len(create.calls) == 2
 
@@ -92,7 +92,7 @@ async def test_glob_files_runs_without_confirmation(app_pilot, tmp_path):
     await wait_for(app, pilot, lambda app: not app.is_generating)
 
     transcript = "\n".join(lines(app))
-    assert "Found two Python files." in lines(app)[-1]
+    assert "Found two Python files." in lines(app)[-4]
     assert str(tmp_path / "app.py") in transcript
     assert str(tmp_path / "widgets" / "status_bar.py") in transcript
     assert ".hidden.py" not in transcript
@@ -240,4 +240,4 @@ async def test_tool_loop_stops_at_iteration_cap(app_pilot, tmp_path):
     await wait_for(app, pilot, lambda app: not app.is_generating, timeout=10)
 
     assert len(calls) == MAX_TOOL_ITERATIONS
-    assert "limit reached" in lines(app)[-1].lower()
+    assert "limit reached" in lines(app)[-4].lower()

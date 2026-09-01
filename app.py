@@ -48,8 +48,11 @@ class LLMApp(App):
         ("ctrl+n", "new_session", "New"),
     ]
 
-    def __init__(self):
+    def __init__(self, session_to_load=None):
         super().__init__()
+
+        self.session_to_load = session_to_load
+        self.exit_session_name = None
 
         self.config = Config()
         
@@ -96,13 +99,16 @@ class LLMApp(App):
         history.mount(Static(f"💬 Starting interactive Chat v:{__version__}"))
         history.mount(Static("Use: /quit, /exit to exit"))
 
-        autosave = self.commands.autosave_info()
-        if autosave:
-            count, saved_at = autosave
-            history.mount(Static(
-                f"Found an auto-saved session from {saved_at} ({count} messages). "
-                f"Run /load autosave to resume it, or /new to discard it."
-            ))
+        if self.session_to_load:
+            self.commands.execute(f"/load {self.session_to_load}")
+        else:
+            autosave = self.commands.autosave_info()
+            if autosave:
+                count, saved_at = autosave
+                history.mount(Static(
+                    f"Found an auto-saved session from {saved_at} ({count} messages). "
+                    f"Run /load autosave to resume it, or /new to discard it."
+                ))
 
         history.mount(Static("-" * 40))
         self.query_one("#input", ChatInput).focus()
@@ -131,6 +137,8 @@ class LLMApp(App):
 
     def quit_response(self, confirmed):
         if confirmed:
+            self.exit_session_name = self.commands.save_exit_session()
+            self.commands.clear_autosave()
             self.exit()
 
 
@@ -230,6 +238,7 @@ class LLMApp(App):
         self.commands.autosave()
         self.is_generating = False
         self.call_from_thread(status_bar.set_ready, self.llm.last_usage)
+        self.call_from_thread(self._append_completion_summary, status_bar)
 
 
     def on_token(self, kind, text_piece, status_bar):
@@ -284,6 +293,12 @@ class LLMApp(App):
     def append_response(self, token):
         history = self.query_one("#history", ChatHistory)
         history.append_ai_response(token)
+
+    def _append_completion_summary(self, status_bar):
+        history = self.query_one("#history", ChatHistory)
+        history.write("")
+        history.write(status_bar.completion_summary())
+        history.write("")
 
 
 

@@ -48,6 +48,7 @@ class CommandProcessor:
             "/commands": (self.cmd_commands, "List all available commands"),
             "/backend": (self.cmd_backend, "Get backend info"),
             "/config": (self.cmd_config, "Show the config"),
+            "/context": (self.cmd_context, "Show context-window usage as a bar"),
             "/cat": (self.cmd_cat, "Display a file's contents"),
             "/edit": (self.cmd_edit, "Edit a file: /edit <path> <old text> -> <new text>"),
             "/grep": (self.cmd_grep, "Search file contents: /grep [-i] [-v] [-w] [-c] [-l] <pattern> [path]"),
@@ -374,6 +375,27 @@ class CommandProcessor:
         self.history.write(f"Duration: {duration}\n")
         return True
 
+    def cmd_context(self, args):
+        status_bar = self.app.query_one(StatusBar)
+        pct = status_bar.context_pct
+
+        if pct is None:
+            self.history.write("No context usage yet — send a message first.\n")
+            return True
+
+        usage = self.app.llm.last_usage
+        used = usage.total_tokens if usage else 0
+        window = self.app.context_window
+
+        width = 30
+        filled = min(width, round(width * pct / 100))
+        bar = "█" * filled + "░" * (width - filled)
+
+        self.history.write("")
+        self.history.write(f"[{bar}] {pct:.0f}%  ({used:,} / {window:,} tokens)")
+        self.history.write("")
+        return True
+
     def cmd_permissions(self, args):
         if args and args[0] == "revoke":
             if len(args) < 2:
@@ -565,6 +587,21 @@ class CommandProcessor:
         safe_name = os.path.basename(name)
         return os.path.join(SESSIONS_DIR, f"{safe_name}.json")
 
+    def _save_session_data(self, name):
+        os.makedirs(SESSIONS_DIR, exist_ok=True)
+
+        data = {
+            "name": name,
+            "saved_at": datetime.now().isoformat(timespec="seconds"),
+            "model": self.app.model,
+            "temperature": self.app.temperature,
+            "system_prompt": self.app.system_prompt,
+            "messages": self.app.chat_log,
+        }
+
+        with open(self._session_path(name), "w") as f:
+            json.dump(data, f, indent=2)
+
     def autosave(self):
         """Persist the live chat_log after every turn, so a crash can be recovered
         from with /load autosave instead of losing the whole conversation."""
@@ -572,19 +609,7 @@ class CommandProcessor:
             return
 
         try:
-            os.makedirs(SESSIONS_DIR, exist_ok=True)
-
-            data = {
-                "name": AUTOSAVE_NAME,
-                "saved_at": datetime.now().isoformat(timespec="seconds"),
-                "model": self.app.model,
-                "temperature": self.app.temperature,
-                "system_prompt": self.app.system_prompt,
-                "messages": self.app.chat_log,
-            }
-
-            with open(self._session_path(AUTOSAVE_NAME), "w") as f:
-                json.dump(data, f, indent=2)
+            self._save_session_data(AUTOSAVE_NAME)
         except OSError:
             pass
 
@@ -593,6 +618,21 @@ class CommandProcessor:
             os.remove(self._session_path(AUTOSAVE_NAME))
         except OSError:
             pass
+
+    def save_exit_session(self):
+        """Save the current chat as a named session on a clean exit, so the user
+        can resume it later with `llm-tui.sh <name>` or `/load <name>`."""
+        if not self.app.chat_log:
+            return None
+
+        name = "exit-" + datetime.now().strftime("%Y%m%d-%H%M%S")
+
+        try:
+            self._save_session_data(name)
+        except OSError:
+            return None
+
+        return name
 
     def autosave_info(self):
         try:
@@ -614,20 +654,9 @@ class CommandProcessor:
             return True
 
         name = args[0]
-        os.makedirs(SESSIONS_DIR, exist_ok=True)
-
-        data = {
-            "name": name,
-            "saved_at": datetime.now().isoformat(timespec="seconds"),
-            "model": self.app.model,
-            "temperature": self.app.temperature,
-            "system_prompt": self.app.system_prompt,
-            "messages": self.app.chat_log,
-        }
 
         try:
-            with open(self._session_path(name), "w") as f:
-                json.dump(data, f, indent=2)
+            self._save_session_data(name)
         except OSError as e:
             self.history.write(f"Error saving session: {e}\n")
             return True
