@@ -139,6 +139,7 @@ When `tools_enabled` is on (the default) and the backend supports it, the model 
 | `/new` | Clear the display and reset session tracking |
 | `/stop` | Stop the in-progress response |
 | `/context` | Show context-window usage as a bar |
+| `/compact [focus instructions]` | Summarize and compact the conversation history, showing a progress bar while it works |
 | `/reload` | Re-read `config.yaml` and apply it to the running app |
 | `/config [key] [value]` | Show or update config values (keys: `backend`, `api_base`, `timeout`, `model`, `temperature`, `max_tokens`, `context_window`, `tools_enabled`) |
 | `/backend` | Show backend/connection info |

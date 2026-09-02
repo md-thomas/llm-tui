@@ -3,6 +3,7 @@ from config import Config
 from version import __version__
 from paths import search_dirs, resolve_file, user_dir
 from widgets.status_bar import StatusBar
+from widgets.progress_bar import ProgressBar
 import tools
 import time
 import os
@@ -157,12 +158,20 @@ class CommandProcessor:
             return True
 
         self.history.write("Compacting conversation history...")
+        progress = ProgressBar(id="compact-progress")
+        self.history.mount(progress)
+        self.history.scroll_end(animate=False)
+        progress.start()
         self.app.query_one(StatusBar).set_thinking()
         focus = " ".join(args)
-        self.app.run_worker(lambda: self._do_compact(focus), thread=True)
+        self.app.run_worker(lambda: self._do_compact(focus, progress), thread=True)
         return True
 
-    def _do_compact(self, focus):
+    def _remove_progress(self, progress):
+        progress.stop()
+        progress.remove()
+
+    def _do_compact(self, focus, progress):
         status_bar = self.app.query_one(StatusBar)
 
         transcript = "\n\n".join(
@@ -192,6 +201,7 @@ class CommandProcessor:
                 if event[0] == "content":
                     summary += event[1]
         except Exception as e:
+            self.app.call_from_thread(self._remove_progress, progress)
             self.app.call_from_thread(self.history.write, f"Error compacting history: {e}\n")
             self.app.call_from_thread(status_bar.set_ready, None)
             return
@@ -199,6 +209,7 @@ class CommandProcessor:
         summary = summary.strip()
 
         if not summary:
+            self.app.call_from_thread(self._remove_progress, progress)
             self.app.call_from_thread(
                 self.history.write,
                 "Compaction produced an empty summary; history left unchanged.\n",
@@ -210,6 +221,7 @@ class CommandProcessor:
         self.autosave()
 
         def apply():
+            self._remove_progress(progress)
             self.history.clear()
             status_bar.reset_context()
             status_bar.set_ready(None)
