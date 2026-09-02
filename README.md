@@ -236,3 +236,7 @@ install.sh           Runs inside an extracted install: creates .venv, installs d
 deploy.sh            One-shot: package.sh + extract + install.sh to a target dir (default /opt)
 tests/               Offline command test suite (not shipped in the tarball)
 ```
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).
