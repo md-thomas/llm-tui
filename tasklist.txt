@@ -1,0 +1,65 @@
+llm-tui task list
+==================
+Open feature work, tracked here so anyone picking up this project can continue it.
+
+
+1. `run` skill (project-specific)
+----------------------------------
+Add a project-level skill/command (e.g. under .claude/skills/run/) that launches
+and drives llm-tui to confirm a change works in the real app -- not just via the
+pytest suite (tests/ is fully offline/mocked and never exercises the live Textual
+UI or a real backend connection).
+
+Should wrap ./llm-tui.sh, handle config/session setup, and let you drive the app
+and check output. Since this is a terminal TUI (not a web app), the usual
+screenshot-a-URL pattern doesn't apply directly -- needs a way to drive a Textual
+app in a terminal and capture/verify its output.
+
+Use case: whenever asked to run, start, or screenshot llm-tui, or confirm a change
+works in the real app.
+
+
+2. `/btw` command
+-----------------
+Let the user ask a side/tangent question while the main response is still
+streaming, without cancelling it (the only interrupt today is /stop, which kills
+the in-progress generation via self.stop_event -- see commands.py cmd_stop).
+
+Design notes / concurrency issues to work around:
+- LLMApp.get_llm_response (app.py:190) is a @work(thread=True) method with no
+  exclusivity guard, and on_chat_input_submitted doesn't check self.is_generating.
+  Nothing currently stops two generations from running concurrently.
+- LLMClient (llm_client.py) is a single shared instance with mutable state
+  (self.last_usage, self.model, self.temperature) -- a second concurrent .chat()
+  call would race on it.
+- A /btw side-question likely needs its own short-lived LLMClient.chat() call,
+  similar to how cmd_compact/_do_compact (commands.py) already spins up an
+  independent blocking llm.chat() call in a worker thread for summarization --
+  rather than sharing the main conversation's in-flight state. It should append
+  its own Q&A into the chat history without touching self.app.chat_log mid-stream
+  of the primary response.
+- Open question: should the side question share conversation context
+  (self.chat_log) or be stateless? Needs a decision before implementing.
+
+
+3. `/undo` and `/redo` commands
+--------------------------------
+Scope of /undo is not yet decided -- two plausible interpretations that don't
+overlap much:
+
+  a) Undo the last chat turn -- pop the last user+assistant pair off
+     self.app.chat_log and remove the corresponding rendered messages from
+     ChatHistory (similar to what /new and /clear already do wholesale).
+
+  b) Undo the last mutating tool call -- revert the last edit_file/write_file the
+     model made (tools.py: edit_file, write_file). Neither currently keeps a
+     backup of pre-edit file contents, so this needs new backup/history machinery
+     added to the tool-call path (app.py _execute_tool, commands.py
+     MUTATING_TOOLS confirm flow) before there's anything to restore from.
+
+/redo should mirror whichever scope /undo ends up with (restore the popped chat
+turn, or reapply the reverted file change) -- design /undo and /redo together as
+a pair with a shared undo/redo stack, not as two independent features.
+
+Before implementing: clarify with whoever's driving this which of (a), (b), or
+both (as separate commands) is wanted.
